@@ -17,8 +17,7 @@
   <title>旅行スケジュール🌴</title>
   <style>
     :root{
-      --border:#ddd; --bg:#f6f6f6; --text:#111; --muted:#666;
-      --black:#111; --white:#fff;
+      --border:#ddd; --bg:#f6f6f6; --text:#111; --muted:#666; --black:#111;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--text);background:#fff;}
@@ -33,28 +32,37 @@
     h2{margin:0;font-size:20px;line-height:1.2;}
     .sub{margin-top:4px;font-size:12px;color:var(--muted);}
     .tiny{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.2;}
-
-    .mode-btn{
-      padding:14px 18px;border:2px solid var(--black);border-radius:16px;
-      font-weight:900;cursor:pointer;white-space:nowrap;min-height:48px;font-size:15px;
-    }
-    .mode-btn:active{transform:translateY(1px);}
     .hint{margin:10px 0 0;font-size:12px;color:var(--muted);}
 
     /* day/cell */
     .day{border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:12px;}
     .day strong{font-size:14px;}
+
     .cell{
       position:relative;background:var(--bg);padding:10px;border-radius:12px;margin-top:8px;cursor:pointer;
+      transition:opacity .15s ease, filter .15s ease;
     }
-    .cell.view{cursor:default;}
-    .cellTitle{font-size:13px;line-height:1.35;padding-right:110px;}
-    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+    .cell.empty{
+      opacity:.55;
+      padding:6px 10px;           /* 空は縦幅を半分くらい */
+      margin-top:6px;
+      filter:saturate(.7);
+    }
+    .cellTitle{font-size:13px;line-height:1.35;padding-right:118px;}
+    .rowline{margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+    .timePill{
+      font-variant-numeric:tabular-nums;
+      font-size:12px; font-weight:900;
+      border:1px solid rgba(0,0,0,.12);
+      padding:2px 8px; border-radius:999px; background:#fff;
+      display:inline-flex; align-items:center; gap:6px;
+      white-space:nowrap;
+    }
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
     .chip{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:#fff;}
-    .chip.all{background:var(--black);color:#fff;border-color:var(--black);}
-    .empty{margin-top:16px;font-size:13px;color:var(--muted);}
+    .chip.active{background:var(--black);color:#fff;border-color:var(--black);}
 
-    /* route badge (場所がある予定だけ目立たせる) */
+    /* route badge */
     .routeBadge{
       position:absolute;top:8px;right:8px;font-size:12px;padding:7px 10px;border-radius:999px;
       background:var(--black);color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
@@ -68,10 +76,14 @@
       position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);
       z-index:90;max-width:720px;margin:0 auto;border-top-left-radius:16px;border-top-right-radius:16px;overflow:hidden;
     }
-    .sheet-inner{padding:12px;max-height:58vh;overflow:auto;}
+    .sheet-inner{padding:12px;max-height:62vh;overflow:auto;}
+    .sheet-head{display:flex; align-items:center; justify-content:space-between; gap:8px;}
     .sheet-head h4{margin:0;font-size:14px;}
+
     .input{width:100%;padding:12px;margin-top:10px;border:1px solid var(--border);border-radius:12px;font-size:14px;}
-    .tag-label{margin-top:12px;font-size:12px;color:var(--muted);}
+    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;}
+    .label{font-size:12px;color:var(--muted); margin-top:12px;}
+
     .tag-row{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;}
     .tag-btn{border:1px solid var(--border);background:#fff;padding:9px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;}
     .tag-btn.active{background:var(--black);color:#fff;border-color:var(--black);}
@@ -84,13 +96,12 @@
     .btn.primary{background:var(--black);color:#fff;border-color:var(--black);flex:1.2;}
     .btn:active{transform:translateY(1px);}
 
-    /* responsive */
     @media (max-width:520px){
       .app{padding:10px;}
       h2{font-size:18px;}
-      .mode-btn{padding:14px 14px;font-size:14px;border-radius:14px;}
-      .cellTitle{padding-right:96px;}
+      .cellTitle{padding-right:102px;}
       .routeBadge{padding:7px 9px;font-size:12px;}
+      .row2{grid-template-columns: 1fr; }
     }
     @media (max-width:380px){
       .sheet-actions{flex-wrap:wrap;}
@@ -107,12 +118,11 @@
         <div class="sub" id="range"></div>
         <div class="tiny" id="tripInfo" style="display:none;"></div>
       </div>
-      <button id="modeBtn" class="mode-btn" type="button">...</button>
+      <!-- ✅ 閲覧モードは廃止（ボタンなし） -->
     </div>
 
-    <p class="hint" id="hint"></p>
+    <p class="hint">タップして編集（同時編集・自動保存）</p>
     <div id="root"></div>
-    <div class="empty" id="empty" style="display:none;">まだ予定が入っていません（編集モードで追加できます）</div>
   </div>
 
   <!-- Edit Sheet -->
@@ -123,10 +133,21 @@
         <h4 id="sheetTitle"></h4>
       </div>
 
-      <input class="input" id="titleInput" placeholder="予定名" />
-      <input class="input" id="mapInput" placeholder="場所（Google Maps共有リンク or 住所/店名/座標）" />
+      <div class="row2">
+        <div>
+          <div class="label">時間（タップでホイール）</div>
+          <input class="input" id="timeInput" type="time" />
+        </div>
+        <div>
+          <div class="label">予定名</div>
+          <input class="input" id="titleInput" placeholder="例：朝食 / ホテル出発" />
+        </div>
+      </div>
 
-      <div class="tag-label">タグ（全員を選ぶと他は解除）</div>
+      <div class="label">場所（Google Mapsリンク or 住所/店名）</div>
+      <input class="input" id="mapInput" placeholder="例：ホテル名 / 渋谷駅 / https://maps.app.goo.gl/..." />
+
+      <div class="label">タグ（Allは他と同時選択不可）</div>
       <div class="tag-row" id="tagRow"></div>
     </div>
 
@@ -138,16 +159,12 @@
   </div>
 
   <script type="module">
-    // =====================
-    // Firebase (CDN)
-    // =====================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import {
-      getAuth, signInAnonymously, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     // =====================
     // 設定
@@ -157,13 +174,15 @@
       { key: "pm", label: "PM" },
       { key: "dinner", label: "ディナー" },
     ];
-    const TAGS = ["全員", "あんぱ", "あんま", "こうすけ", "なお"];
 
-    // ✅ 12/21は出さない（12/22〜1/9）
+    // ✅ All追加
+    const TAGS = ["All", "あんぱ", "あんま", "こうすけ", "なお"];
+
+    // ✅ 12/21は除外（12/22〜1/9）
     const START = "2025-12-22";
     const END   = "2026-01-09";
 
-    // ✅ あなたのfirebaseConfig（必要なら差し替え）
+    // ✅ あなたのfirebaseConfigに置き換え
 const firebaseConfig = {
   apiKey: "AIzaSyCzLFbx3hKRF5fzLb2qEoQb1RjuBKL9L64",
   authDomain: "itinerary-60bec.firebaseapp.com",
@@ -176,7 +195,7 @@ const firebaseConfig = {
     const $ = (id) => document.getElementById(id);
 
     // =====================
-    // 日付（JSTズレ防止：toISOString()を使わない）
+    // 日付（JSTズレ防止）
     // =====================
     const pad = (n) => String(n).padStart(2, "0");
     const toLocalISO = (dt) => `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
@@ -184,9 +203,6 @@ const firebaseConfig = {
     function dateList(startIso, endIso){
       const out=[];
       const d = new Date(startIso + "T00:00:00");
-      const end = new Date(endIso + "T00:00:00");
-      if (isNaN(d.getTime()) || isNaN(end.getTime())) return out;
-
       while(true){
         const iso = toLocalISO(d);
         out.push(iso);
@@ -208,15 +224,17 @@ const firebaseConfig = {
     function toMapHref(input){
       const s = String(input || "").trim();
       if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s; // 入力がURLならそれを使う
+      if(/^https?:\/\//i.test(s)) return s;
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s)}`;
     }
 
     // =====================
-    // grid
+    // 1枠=1件 形式
+    // cell: { time, title, map, tags[] }
     // =====================
-    function emptyCell(){ return { title:"", tags:["全員"], map:"" }; }
-
+    function emptyCell(){
+      return { time: "", title: "", map: "", tags: [] };
+    }
     function makeGrid(){
       const g = {};
       dateList(START, END).forEach(date => {
@@ -225,35 +243,34 @@ const firebaseConfig = {
       });
       return g;
     }
-    function normalizeGrid(grid){
+    function cleanTags(tags){
+      let t = Array.isArray(tags) ? tags.filter(x => TAGS.includes(x)) : [];
+      return t.includes("All") ? ["All"] : t;
+    }
+    function normalizeGrid(raw){
       const g = makeGrid();
-      if(!grid || typeof grid !== "object") return g;
+      if(!raw || typeof raw !== "object") return g;
 
-      Object.keys(g).forEach(date => {
-        SLOTS.forEach(s => {
-          const c = grid?.[date]?.[s.key];
-          if(!c) return;
+      for(const date of Object.keys(g)){
+        for(const s of SLOTS){
+          const cell = raw?.[date]?.[s.key];
+          if(!cell || typeof cell !== "object") continue;
 
-          let tags = Array.isArray(c.tags) && c.tags.length ? c.tags.map(String) : ["全員"];
-          tags = tags.filter(t => TAGS.includes(t));
-          if(!tags.length) tags = ["全員"];
-          if(tags.includes("全員") && tags.length > 1) tags = ["全員"];
+          const time  = String(cell.time || "");
+          const title = String(cell.title || "");
+          const map   = String(cell.map || "");
+          const tags  = cleanTags(cell.tags);
 
-          g[date][s.key] = {
-            title: String(c.title || ""),
-            map: String(c.map || ""),
-            tags
-          };
-        });
-      });
+          g[date][s.key] = { time, title, map, tags };
+        }
+      }
       return g;
     }
 
     // =====================
-    // tripId (URL param) : 共有は「同じURL」で実現
+    // tripId（URL param）
     // =====================
     function randomTripId(){
-      // __ を避ける（予約語回避）
       return "t" + Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,6);
     }
     function getOrCreateTripId(){
@@ -268,9 +285,7 @@ const firebaseConfig = {
     }
     const tripId = getOrCreateTripId();
 
-    // UI info
     $("range").textContent = `${formatJP(START)} 〜 ${formatJP(END)}`;
-    // 共有情報は控えめに（ボタンは出さない）
     $("tripInfo").style.display = "block";
     $("tripInfo").textContent = `このURLを共有すると同じ予定が見えます（ID: ${tripId}）`;
 
@@ -283,154 +298,16 @@ const firebaseConfig = {
     const tripRef = doc(db, "trips", tripId);
 
     // =====================
-    // state（Firestoreが正）
+    // state
     // =====================
-    let state = { grid: makeGrid(), mode: "edit" };
-    let editing = null;
+    let state = { grid: makeGrid() };
+    let editing = null; // {date, slotKey}
     let draft = emptyCell();
+    let ready = false;
     let unsub = null;
 
     // =====================
     // UI
-    // =====================
-    function setModeBtn(mode){
-      const b = $("modeBtn");
-      const isView = mode === "view";
-
-      // ✅ 要望：入力できる画面(=edit)では「閲覧モードへ」ボタン
-      // ✅ 予定だけ表示(=view)では「編集モードへ」ボタン
-      b.textContent = isView ? "✏️ 編集モードへ" : "📖 閲覧モードへ";
-
-      if(isView){
-        // view画面は白ボタン（編集へ）
-        b.style.background = "#fff";
-        b.style.color = "#111";
-        b.style.border = "2px solid #111";
-      }else{
-        // edit画面は黒ボタン（閲覧へ）
-        b.style.background = "#111";
-        b.style.color = "#fff";
-        b.style.border = "2px solid #111";
-      }
-    }
-
-    function renderChips(tags){
-      const d = document.createElement("div");
-      d.className = "chips";
-      (Array.isArray(tags) ? tags : []).forEach(t => {
-        const s = document.createElement("span");
-        s.className = "chip" + (t === "全員" ? " all" : "");
-        s.textContent = t;
-        d.appendChild(s);
-      });
-      return d;
-    }
-
-    function render(){
-      const isView = state.mode === "view";
-      setModeBtn(state.mode);
-
-      $("hint").textContent = isView
-        ? "予定が入っている枠だけ表示します"
-        : "タップして予定を入力（全員にリアルタイム共有）";
-
-      const root = $("root");
-      root.innerHTML = "";
-      let any = false;
-
-      dateList(START, END).forEach(date => {
-        const day = document.createElement("div");
-        day.className = "day";
-        day.innerHTML = `<strong>${formatJP(date)}</strong>`;
-
-        let hasDay = false;
-
-        if(isView){
-          // view: 予定がある枠だけ（AM→PM→ディナー）
-          SLOTS.forEach(s => {
-            const c = state.grid[date][s.key];
-            const has = (c.title && c.title.trim()) || (c.map && c.map.trim());
-            if(!has) return;
-
-            hasDay = true;
-            any = true;
-
-            const cell = document.createElement("div");
-            cell.className = "cell view";
-
-            if(c.map && c.map.trim()){
-              const a = document.createElement("a");
-              a.className = "routeBadge";
-              a.href = toMapHref(c.map);
-              a.target = "_blank";
-              a.rel = "noopener noreferrer";
-              a.textContent = "📍ルート検索";
-              a.addEventListener("click", (e) => e.stopPropagation());
-              cell.appendChild(a);
-            }
-
-            const t = document.createElement("div");
-            t.className = "cellTitle";
-            t.innerHTML = `<strong>${s.label}</strong>：${c.title ? escapeHtml(c.title) : ""}`;
-            cell.appendChild(t);
-            cell.appendChild(renderChips(c.tags));
-
-            day.appendChild(cell);
-          });
-
-          if(hasDay) root.appendChild(day);
-          return;
-        }
-
-        // edit: 全枠出す（AM/PM/ディナー）
-        any = true;
-        SLOTS.forEach(s => {
-          const c = state.grid[date][s.key];
-
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          cell.addEventListener("click", () => openEdit(date, s.key));
-
-          if(c.map && c.map.trim()){
-            const a = document.createElement("a");
-            a.className = "routeBadge";
-            a.href = toMapHref(c.map);
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            a.textContent = "📍ルート検索";
-            a.addEventListener("click", (e) => e.stopPropagation());
-            cell.appendChild(a);
-          }
-
-          const t = document.createElement("div");
-          t.className = "cellTitle";
-          t.innerHTML = `<strong>${s.label}</strong>：${c.title ? escapeHtml(c.title) : "＋ 追加"}`;
-          cell.appendChild(t);
-          cell.appendChild(renderChips(c.tags));
-
-          day.appendChild(cell);
-        });
-
-        root.appendChild(day);
-      });
-
-      // viewで何もない場合
-      $("empty").style.display = (state.mode === "view" && !any) ? "block" : "none";
-      if(state.mode === "view"){
-        // viewは “予定が1つもない” かどうかで判定し直す
-        let count = 0;
-        dateList(START, END).forEach(date => {
-          SLOTS.forEach(s => {
-            const c = state.grid[date][s.key];
-            if ((c.title && c.title.trim()) || (c.map && c.map.trim())) count++;
-          });
-        });
-        $("empty").style.display = count ? "none" : "block";
-      }
-    }
-
-    // =====================
-    // Sheet
     // =====================
     function renderTagBtns(){
       const row = $("tagRow");
@@ -440,14 +317,14 @@ const firebaseConfig = {
         b.type = "button";
         b.className = "tag-btn" + (draft.tags.includes(t) ? " active" : "");
         b.textContent = t;
+
         b.onclick = () => {
-          if(t === "全員"){
-            draft.tags = ["全員"];
+          if(t === "All"){
+            draft.tags = ["All"]; // All排他
           }else{
-            draft.tags = draft.tags.filter(x => x !== "全員");
+            draft.tags = draft.tags.filter(x => x !== "All");
             if(draft.tags.includes(t)) draft.tags = draft.tags.filter(x => x !== t);
             else draft.tags.push(t);
-            if(!draft.tags.length) draft.tags = ["全員"];
           }
           renderTagBtns();
         };
@@ -455,16 +332,25 @@ const firebaseConfig = {
       });
     }
 
-    function openEdit(date, slot){
-      editing = { date, slot };
-      const c = state.grid[date][slot];
-      draft = { title: c.title, map: c.map, tags: [...c.tags] };
+    function openEdit(date, slotKey){
+      editing = { date, slotKey };
+      const slotLabel = SLOTS.find(x => x.key === slotKey)?.label || slotKey;
+      $("sheetTitle").textContent = `${formatJP(date)} / ${slotLabel}`;
 
-      $("sheetTitle").textContent = `${formatJP(date)} / ${SLOTS.find(x => x.key === slot).label}`;
+      const cell = state.grid?.[date]?.[slotKey] || emptyCell();
+      draft = {
+        time:  String(cell.time || ""),
+        title: String(cell.title || ""),
+        map:   String(cell.map || ""),
+        tags:  cleanTags(cell.tags)
+      };
+
+      $("timeInput").value  = draft.time;
       $("titleInput").value = draft.title;
-      $("mapInput").value = draft.map;
+      $("mapInput").value   = draft.map;
 
       renderTagBtns();
+
       $("backdrop").style.display = "block";
       $("sheet").style.display = "block";
     }
@@ -475,17 +361,85 @@ const firebaseConfig = {
       editing = null;
     }
 
-    $("closeBtn").addEventListener("click", closeSheet);
-    $("backdrop").addEventListener("click", closeSheet);
-    $("titleInput").addEventListener("input", (e) => (draft.title = e.target.value));
-    $("mapInput").addEventListener("input", (e) => (draft.map = e.target.value));
+    function cellHasAny(cell){
+      const t = String(cell?.title || "").trim();
+      const m = String(cell?.map || "").trim();
+      const ti = String(cell?.time || "").trim();
+      const tags = Array.isArray(cell?.tags) ? cell.tags : [];
+      return Boolean(t || m || ti || tags.length);
+    }
 
-    $("clearBtn").addEventListener("click", () => {
-      draft = emptyCell();
-      $("titleInput").value = "";
-      $("mapInput").value = "";
-      renderTagBtns();
-    });
+    function render(){
+      const root = $("root");
+      root.innerHTML = "";
+
+      dateList(START, END).forEach(date => {
+        const day = document.createElement("div");
+        day.className = "day";
+        day.innerHTML = `<strong>${formatJP(date)}</strong>`;
+
+        SLOTS.forEach(s => {
+          const cellData = state.grid?.[date]?.[s.key] || emptyCell();
+          const hasAny = cellHasAny(cellData);
+
+          const cell = document.createElement("div");
+          cell.className = "cell" + (hasAny ? "" : " empty");
+          cell.addEventListener("click", () => openEdit(date, s.key));
+
+          const mapHref = toMapHref(cellData.map);
+          if(mapHref){
+            const a = document.createElement("a");
+            a.className = "routeBadge";
+            a.href = mapHref;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.textContent = "📍ルート検索";
+            a.addEventListener("click", (e) => e.stopPropagation());
+            cell.appendChild(a);
+          }
+
+          const title = document.createElement("div");
+          title.className = "cellTitle";
+          title.innerHTML = `<strong>${s.label}</strong>：${hasAny ? "" : "＋ 追加"}`;
+          cell.appendChild(title);
+
+          if(hasAny){
+            const row = document.createElement("div");
+            row.className = "rowline";
+            if(cellData.time){
+              const time = document.createElement("span");
+              time.className = "timePill";
+              time.textContent = `🕒 ${cellData.time}`;
+              row.appendChild(time);
+            }
+            if(cellData.title){
+              const t = document.createElement("span");
+              t.style.fontSize = "13px";
+              t.style.lineHeight = "1.35";
+              t.innerHTML = escapeHtml(cellData.title);
+              row.appendChild(t);
+            }
+            cell.appendChild(row);
+
+            if((cellData.tags||[]).length){
+              const chips = document.createElement("div");
+              chips.className = "chips";
+              cellData.tags.forEach(tg => {
+                const sp = document.createElement("span");
+                sp.className = "chip active";
+                sp.textContent = tg;
+                chips.appendChild(sp);
+              });
+              cell.appendChild(chips);
+            }
+          }
+
+          day.appendChild(cell);
+        });
+
+        root.appendChild(day);
+      });
+    }
 
     // =====================
     // Firestore
@@ -496,50 +450,63 @@ const firebaseConfig = {
         await setDoc(tripRef, {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          mode: "edit",
           grid: makeGrid(),
         });
       }
     }
 
-    async function saveCell(date, slotKey, payload){
-      const base = `grid.${date}.${slotKey}`;
+    async function saveCell(date, slotKey, cell){
+      const payload = {
+        time:  String(cell.time || "").trim(),
+        title: String(cell.title || "").trim(),
+        map:   String(cell.map || "").trim(),
+        tags:  cleanTags(cell.tags)
+      };
+
       const update = {};
-      update[`${base}.title`] = payload.title;
-      update[`${base}.map`]   = payload.map;
-      update[`${base}.tags`]  = payload.tags;
+      update[`grid.${date}.${slotKey}`] = payload;
       update["updatedAt"] = serverTimestamp();
       await updateDoc(tripRef, update);
     }
 
-    async function setMode(mode){
-      state.mode = mode;
-      render();
-      await updateDoc(tripRef, { mode, updatedAt: serverTimestamp() });
-    }
+    // =====================
+    // Events
+    // =====================
+    $("backdrop").addEventListener("click", closeSheet);
+    $("closeBtn").addEventListener("click", closeSheet);
+
+    $("timeInput").addEventListener("input", (e) => (draft.time = e.target.value));
+    $("titleInput").addEventListener("input", (e) => (draft.title = e.target.value));
+    $("mapInput").addEventListener("input", (e) => (draft.map = e.target.value));
+
+    $("clearBtn").addEventListener("click", () => {
+      draft = emptyCell();
+      $("timeInput").value = "";
+      $("titleInput").value = "";
+      $("mapInput").value = "";
+      renderTagBtns();
+    });
 
     $("saveBtn").addEventListener("click", async () => {
-      if(!editing) return;
-
-      const title = String($("titleInput").value || "").trim();
-      const map   = String($("mapInput").value || "").trim();
-      let tags = Array.isArray(draft.tags) && draft.tags.length ? draft.tags : ["全員"];
-      if(tags.includes("全員") && tags.length > 1) tags = ["全員"];
-
-      const { date, slot } = editing;
-      closeSheet();
-      await saveCell(date, slot, { title, map, tags });
-    });
-
-    $("modeBtn").addEventListener("click", async () => {
-      closeSheet();
-      const next = state.mode === "view" ? "edit" : "view";
-      await setMode(next);
+      try{
+        if(!editing) return;
+        if(!ready){
+          alert("Firebase初期化中です。数秒待ってから保存してください。");
+          return;
+        }
+        await saveCell(editing.date, editing.slotKey, draft);
+        closeSheet();
+      }catch(e){
+        console.error("SAVE FAILED", e);
+        alert("保存に失敗しました。\n\n" + (e?.message || e));
+      }
     });
 
     // =====================
-    // 起動：匿名ログイン → doc準備 → 購読
+    // Boot
     // =====================
+    render();
+
     signInAnonymously(auth).catch((e) => {
       console.error(e);
       alert("匿名ログインに失敗しました。Firebase AuthenticationでAnonymousを有効化してください。");
@@ -549,13 +516,12 @@ const firebaseConfig = {
       if(!user) return;
 
       await ensureTripDoc();
+      ready = true;
 
       if(unsub) unsub();
       unsub = onSnapshot(tripRef, (snap) => {
         const data = snap.data();
         if(!data) return;
-
-        state.mode = data.mode === "view" ? "view" : "edit";
         state.grid = normalizeGrid(data.grid);
         render();
       }, (err) => {
