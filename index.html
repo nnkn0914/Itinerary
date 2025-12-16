@@ -45,19 +45,69 @@
     margin-top:6px; cursor:pointer;
   }
   .row.empty{opacity:.55; padding:6px 8px;}
-  .time{font-weight:900;font-variant-numeric:tabular-nums; white-space:nowrap; font-size:12px;}
-  .title{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px;}
-  .tags{display:flex; gap:4px; flex-wrap:nowrap;}
-  .tag{
-    font-size:10px; padding:2px 6px; border-radius:999px;
-    border:1px solid var(--border); background:#fff; white-space:nowrap;
-  }
-  .tag.all{background:#111;color:#fff;border-color:#111;}
 
+  .time{
+    font-weight:900;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+    font-size:12px;
+    width:56px;               /* 時間の幅を固定して揃える */
+    flex:0 0 auto;
+  }
+
+  /* ✅ 予定名 + タグをまとめる（ルート検索を右端固定するため） */
+  .main{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+    flex:1 1 auto;
+  }
+
+  .title{
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:13px;
+    flex:0 1 auto;
+  }
+
+  /* ✅ タグは予定名の横（同一ブロック内） */
+  .tags{
+    display:flex;
+    gap:4px;
+    flex:0 0 auto;
+    flex-wrap:nowrap;
+    overflow:hidden;           /* タグが多い時は切れる（右端のボタンは残る） */
+    max-width:220px;
+  }
+
+  .tag{
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;           /* ✅ Allも白背景 */
+    white-space:nowrap;
+    color:#111;
+  }
+
+  /* ✅ ルート検索は常に右端固定 */
   .route{
-    font-size:11px; padding:5px 9px; border-radius:999px;
-    background:#111; color:#fff; text-decoration:none; white-space:nowrap;
-    display:inline-flex; align-items:center; gap:6px; font-weight:900;
+    font-size:11px;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#111;
+    color:#fff;
+    text-decoration:none;
+    white-space:nowrap;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-weight:900;
+    margin-left:auto;          /* ✅ 右端へ押し出す */
+    flex:0 0 auto;
   }
   .route:active{transform:translateY(1px);}
 
@@ -116,6 +166,7 @@
   @media (max-width:520px){
     h2{font-size:18px;}
     .row2{grid-template-columns:1fr;}
+    .tags{max-width:150px;}
   }
 </style>
 </head>
@@ -149,13 +200,12 @@
   import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-  // ===== 設定 =====
   const SLOTS=[{key:"am",label:"AM"},{key:"pm",label:"PM"},{key:"dinner",label:"ディナー"}];
   const TAGS=["All","あんぱ","あんま","こうすけ","なお"];
   const START="2025-12-22";
   const END="2026-01-09";
 
-  // ⚠️ あなたの値に差し替え
+  // ⚠️あなたのfirebaseConfigに置換
 const firebaseConfig = {
   apiKey: "AIzaSyCzLFbx3hKRF5fzLb2qEoQb1RjuBKL9L64",
   authDomain: "itinerary-60bec.firebaseapp.com",
@@ -167,7 +217,6 @@ const firebaseConfig = {
 
   const $ = (id)=>document.getElementById(id);
 
-  // ===== utils =====
   const pad=n=>String(n).padStart(2,"0");
   const toISO=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
@@ -197,7 +246,6 @@ const firebaseConfig = {
     return "i"+Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6);
   }
 
-  // ===== data =====
   const emptyItem = ()=>({id:id(), time:"", title:"", map:"", tags:[]});
   function makeGrid(){
     const g={};
@@ -219,21 +267,13 @@ const firebaseConfig = {
       for(const s of SLOTS){
         const v = raw?.[d]?.[s.key];
 
-        // 旧：単体形式も吸収
         if(v && typeof v==="object" && !Array.isArray(v) && ("time" in v || "title" in v || "map" in v)){
-          const one = {
-            id:id(),
-            time:String(v.time||""),
-            title:String(v.title||""),
-            map:String(v.map||""),
-            tags:cleanTags(v.tags)
-          };
+          const one = { id:id(), time:String(v.time||""), title:String(v.title||""), map:String(v.map||""), tags:cleanTags(v.tags) };
           const ok = (one.time.trim()||one.title.trim()||one.map.trim()||one.tags.length);
           g[d][s.key] = ok ? [one] : [];
           continue;
         }
 
-        // 新：配列形式
         if(Array.isArray(v)){
           g[d][s.key] = v.map(x=>({
             id:String(x?.id||id()),
@@ -248,7 +288,6 @@ const firebaseConfig = {
     return g;
   }
 
-  // ===== tripId =====
   function getTripId(){
     const u=new URL(location.href);
     let t=u.searchParams.get("trip");
@@ -263,19 +302,16 @@ const firebaseConfig = {
 
   $("range").textContent = `${formatJP(START)} 〜 ${formatJP(END)}`;
 
-  // ===== Firebase =====
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
   const tripRef = doc(db, "trips", tripId);
 
-  // ===== state =====
   let state = { grid: makeGrid() };
-  let editing = null;        // {date, slotKey}
-  let draftItems = [];       // 編集画面用（複数）
+  let editing = null;
+  let draftItems = [];
   let ready=false;
 
-  // ===== Firestore =====
   async function ensureDoc(){
     const snap = await getDoc(tripRef);
     if(!snap.exists()){
@@ -297,7 +333,6 @@ const firebaseConfig = {
     await updateDoc(tripRef, update);
   }
 
-  // ===== Main UI =====
   function renderMain(){
     const root=$("root");
     root.innerHTML="";
@@ -333,14 +368,30 @@ const firebaseConfig = {
             const time=document.createElement("span");
             time.className="time";
             time.textContent = it.time ? it.time : "--:--";
+            row.appendChild(time);
+
+            // ✅ 予定名の横にタグ（mainブロック）
+            const main=document.createElement("div");
+            main.className="main";
 
             const title=document.createElement("span");
             title.className="title";
             title.textContent = it.title || "";
+            main.appendChild(title);
 
-            row.appendChild(time);
-            row.appendChild(title);
+            const tags=document.createElement("span");
+            tags.className="tags";
+            (it.tags||[]).forEach(t=>{
+              const sp=document.createElement("span");
+              sp.className="tag"; // ✅ Allも同じ見た目（白背景）
+              sp.textContent=t;
+              tags.appendChild(sp);
+            });
+            main.appendChild(tags);
 
+            row.appendChild(main);
+
+            // ✅ ルート検索を一番右端に固定
             if(String(it.map||"").trim()){
               const a=document.createElement("a");
               a.className="route";
@@ -351,16 +402,6 @@ const firebaseConfig = {
               a.onclick = (e)=>e.stopPropagation();
               row.appendChild(a);
             }
-
-            const tags=document.createElement("span");
-            tags.className="tags";
-            (it.tags||[]).forEach(t=>{
-              const sp=document.createElement("span");
-              sp.className="tag"+(t==="All"?" all":"");
-              sp.textContent=t;
-              tags.appendChild(sp);
-            });
-            row.appendChild(tags);
 
             slot.appendChild(row);
           });
@@ -373,7 +414,6 @@ const firebaseConfig = {
     }
   }
 
-  // ===== Editor UI =====
   function openEditor(date, slotKey){
     editing = {date, slotKey};
     const slotLabel = SLOTS.find(x=>x.key===slotKey)?.label || slotKey;
@@ -384,7 +424,6 @@ const firebaseConfig = {
       ? cur.map(x=>({ ...x, tags: Array.isArray(x.tags)? [...x.tags] : [] }))
       : [ emptyItem() ];
 
-    // ✅ 既に1セット入っている時だけ表示
     $("addBtn").style.display = (cur.length >= 1) ? "inline-block" : "none";
 
     renderEditor();
@@ -408,7 +447,7 @@ const firebaseConfig = {
     });
   }
 
-  // ✅ タグで再描画しない版（入力が消えない）
+  // タグで再描画しない（入力が消えない）
   function itemEditor(it, idx){
     const wrap=document.createElement("div");
     wrap.className="setBox";
@@ -431,7 +470,7 @@ const firebaseConfig = {
         if(i>=0){
           draftItems.splice(i,1);
           $("addBtn").style.display = (draftItems.length >= 1) ? "inline-block" : "none";
-          renderEditor(); // 削除は再描画OK
+          renderEditor();
         }
       };
       head.appendChild(del);
@@ -500,7 +539,6 @@ const firebaseConfig = {
             it.tags.push(t);
             b.classList.add("active");
           }
-          // AllだけOFF
           [...tagRow.children].forEach(btn=>{
             if(btn.textContent==="All") btn.classList.remove("active");
           });
@@ -514,10 +552,9 @@ const firebaseConfig = {
     return wrap;
   }
 
-  // ✅ 既に1セット入っている時だけ表示されている
   $("addBtn").addEventListener("click", ()=>{
     draftItems.push(emptyItem());
-    renderEditor(); // 追加は再描画OK
+    renderEditor();
   });
 
   $("backdrop").addEventListener("click", closeEditor);
@@ -538,7 +575,6 @@ const firebaseConfig = {
     }
   });
 
-  // ===== boot =====
   renderMain();
 
   signInAnonymously(auth).catch((e)=>{
