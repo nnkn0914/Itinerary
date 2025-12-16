@@ -12,177 +12,130 @@
   <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>旅行スケジュール🌴</title>
-  <style>
-    :root{
-      --border:#ddd; --bg:#f6f6f6; --text:#111; --muted:#666; --black:#111;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--text);background:#fff;}
-    .app{max-width:720px;margin:0 auto;padding:12px;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>旅行スケジュール🌴</title>
 
-    /* top */
-    .topbar{
-      position:sticky; top:0; z-index:50; background:#fff;
-      padding:10px 0; border-bottom:1px solid rgba(0,0,0,.06);
-      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-    }
-    h2{margin:0;font-size:20px;line-height:1.2;}
-    .sub{margin-top:4px;font-size:12px;color:var(--muted);}
-    .tiny{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.2;}
-    .hint{margin:10px 0 0;font-size:12px;color:var(--muted);}
+<style>
+:root{
+  --border:#ddd; --bg:#f6f6f6; --text:#111; --muted:#666; --black:#111;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--text)}
+.app{max-width:720px;margin:0 auto;padding:12px}
 
-    /* day/cell */
-    .day{border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:12px;}
-    .day strong{font-size:14px;}
+h2{margin:0;font-size:20px}
+.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
 
-    .cell{
-      position:relative;background:var(--bg);padding:10px;border-radius:12px;margin-top:8px;cursor:pointer;
-      transition:opacity .15s ease, filter .15s ease;
-    }
-    .cell.empty{
-      opacity:.55;
-      padding:6px 10px;           /* 空は縦幅を半分くらい */
-      margin-top:6px;
-      filter:saturate(.7);
-    }
-    .cellTitle{font-size:13px;line-height:1.35;padding-right:118px;}
-    .rowline{margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-    .timePill{
-      font-variant-numeric:tabular-nums;
-      font-size:12px; font-weight:900;
-      border:1px solid rgba(0,0,0,.12);
-      padding:2px 8px; border-radius:999px; background:#fff;
-      display:inline-flex; align-items:center; gap:6px;
-      white-space:nowrap;
-    }
-    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-    .chip{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:#fff;}
-    .chip.active{background:var(--black);color:#fff;border-color:var(--black);}
+.day{border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:12px}
+.day strong{font-size:14px}
 
-    /* route badge */
-    .routeBadge{
-      position:absolute;top:8px;right:8px;font-size:12px;padding:7px 10px;border-radius:999px;
-      background:var(--black);color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
-      font-weight:900;border:1px solid var(--black);
-    }
-    .routeBadge:active{transform:translateY(1px);}
+.slot{margin-top:8px}
+.slotHead{font-size:13px;font-weight:700;margin-bottom:4px}
 
-    /* sheet */
-    .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:80;}
-    .sheet{
-      position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);
-      z-index:90;max-width:720px;margin:0 auto;border-top-left-radius:16px;border-top-right-radius:16px;overflow:hidden;
-    }
-    .sheet-inner{padding:12px;max-height:62vh;overflow:auto;}
-    .sheet-head{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-    .sheet-head h4{margin:0;font-size:14px;}
+.item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 8px;
+  border-radius:10px;
+  background:var(--bg);
+  margin-top:4px;
+  font-size:13px;
+}
+.item.empty{opacity:.5}
 
-    .input{width:100%;padding:12px;margin-top:10px;border:1px solid var(--border);border-radius:12px;font-size:14px;}
-    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;}
-    .label{font-size:12px;color:var(--muted); margin-top:12px;}
+.time{font-weight:700;font-variant-numeric:tabular-nums}
+.title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-    .tag-row{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;}
-    .tag-btn{border:1px solid var(--border);background:#fff;padding:9px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;}
-    .tag-btn.active{background:var(--black);color:#fff;border-color:var(--black);}
+.tags{display:flex;gap:4px}
+.tag{font-size:10px;padding:2px 6px;border-radius:999px;border:1px solid var(--border)}
+.tag.all{background:#111;color:#fff;border-color:#111}
 
-    .sheet-actions{
-      display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid rgba(0,0,0,.06);background:#fff;
-    }
-    .btn{border:1px solid var(--border);background:#fff;border-radius:14px;cursor:pointer;}
-    .btn.big{padding:14px 0;font-size:15px;font-weight:900;flex:1;min-width:0;}
-    .btn.primary{background:var(--black);color:#fff;border-color:var(--black);flex:1.2;}
-    .btn:active{transform:translateY(1px);}
+.route{
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#111;
+  color:#fff;
+  text-decoration:none;
+  white-space:nowrap;
+}
 
-    @media (max-width:520px){
-      .app{padding:10px;}
-      h2{font-size:18px;}
-      .cellTitle{padding-right:102px;}
-      .routeBadge{padding:7px 9px;font-size:12px;}
-      .row2{grid-template-columns: 1fr; }
-    }
-    @media (max-width:380px){
-      .sheet-actions{flex-wrap:wrap;}
-      .btn.big{flex:1 1 calc(50% - 4px);}
-      .btn.primary{flex:1 1 100%;}
-    }
-  </style>
+/* bottom sheet */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25)}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;
+  background:#fff;border-top:1px solid var(--border);
+  border-radius:16px 16px 0 0;
+  max-width:720px;margin:0 auto;
+}
+.sheetInner{padding:12px;max-height:60vh;overflow:auto}
+
+.sheetHead{
+  display:flex;align-items:center;justify-content:space-between
+}
+.sheetHead h4{margin:0;font-size:14px}
+
+.addBtn{
+  font-size:12px;
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:999px;
+  background:#fff;
+}
+
+.input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin-top:8px;font-size:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.tagRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tagBtn{border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:#fff;font-size:12px}
+.tagBtn.active{background:#111;color:#fff;border-color:#111}
+
+.actions{display:flex;gap:8px;padding:10px;border-top:1px solid #eee}
+.actions button{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:#fff;font-weight:700}
+.actions .save{background:#111;color:#fff;border-color:#111}
+</style>
 </head>
+
 <body>
-  <div class="app">
-    <div class="topbar">
-      <div>
-        <h2>旅行スケジュール🌴</h2>
-        <div class="sub" id="range"></div>
-        <div class="tiny" id="tripInfo" style="display:none;"></div>
-      </div>
-      <!-- ✅ 閲覧モードは廃止（ボタンなし） -->
+<div class="app">
+  <h2>旅行スケジュール🌴</h2>
+  <div class="sub" id="range"></div>
+  <div class="hint">タップして編集（同時編集・自動保存）</div>
+  <div id="root"></div>
+</div>
+
+<div class="backdrop" id="backdrop" style="display:none"></div>
+<div class="sheet" id="sheet" style="display:none">
+  <div class="sheetInner">
+    <div class="sheetHead">
+      <h4 id="sheetTitle"></h4>
+      <button class="addBtn" id="addItemBtn" style="display:none">＋予定を追加</button>
     </div>
 
-    <p class="hint">タップして編集（同時編集・自動保存）</p>
-    <div id="root"></div>
+    <div id="itemsEditor"></div>
   </div>
 
-  <!-- Edit Sheet -->
-  <div class="sheet-backdrop" id="backdrop" style="display:none;"></div>
-  <div class="sheet" id="sheet" style="display:none;">
-    <div class="sheet-inner">
-      <div class="sheet-head">
-        <h4 id="sheetTitle"></h4>
-      </div>
-
-      <div class="row2">
-        <div>
-          <div class="label">時間（タップでホイール）</div>
-          <input class="input" id="timeInput" type="time" />
-        </div>
-        <div>
-          <div class="label">予定名</div>
-          <input class="input" id="titleInput" placeholder="例：朝食 / ホテル出発" />
-        </div>
-      </div>
-
-      <div class="label">場所（Google Mapsリンク or 住所/店名）</div>
-      <input class="input" id="mapInput" placeholder="例：ホテル名 / 渋谷駅 / https://maps.app.goo.gl/..." />
-
-      <div class="label">タグ（Allは他と同時選択不可）</div>
-      <div class="tag-row" id="tagRow"></div>
-    </div>
-
-    <div class="sheet-actions">
-      <button class="btn big" id="closeBtn" type="button">閉じる</button>
-      <button class="btn big" id="clearBtn" type="button">クリア</button>
-      <button class="btn big primary" id="saveBtn" type="button">保存</button>
-    </div>
+  <div class="actions">
+    <button id="closeBtn">閉じる</button>
+    <button class="save" id="saveBtn">保存</button>
   </div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-    // =====================
-    // 設定
-    // =====================
-    const SLOTS = [
-      { key: "am", label: "AM" },
-      { key: "pm", label: "PM" },
-      { key: "dinner", label: "ディナー" },
-    ];
+/* ========= 設定 ========= */
+const SLOTS=[{key:"am",label:"AM"},{key:"pm",label:"PM"},{key:"dinner",label:"ディナー"}];
+const TAGS=["All","あんぱ","あんま","こうすけ","なお"];
+const START="2025-12-22";
+const END="2026-01-09";
 
-    // ✅ All追加
-    const TAGS = ["All", "あんぱ", "あんま", "こうすけ", "なお"];
-
-    // ✅ 12/21は除外（12/22〜1/9）
-    const START = "2025-12-22";
-    const END   = "2026-01-09";
-
-    // ✅ あなたのfirebaseConfigに置き換え
+/* 🔴 firebaseConfig を差し替え */
 const firebaseConfig = {
   apiKey: "AIzaSyCzLFbx3hKRF5fzLb2qEoQb1RjuBKL9L64",
   authDomain: "itinerary-60bec.firebaseapp.com",
@@ -192,344 +145,152 @@ const firebaseConfig = {
   appId: "1:174617579746:web:fc1e6d74dd7c7b86a0cebb"
 };
 
-    const $ = (id) => document.getElementById(id);
+const $=id=>document.getElementById(id);
 
-    // =====================
-    // 日付（JSTズレ防止）
-    // =====================
-    const pad = (n) => String(n).padStart(2, "0");
-    const toLocalISO = (dt) => `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+/* ========= util ========= */
+const pad=n=>String(n).padStart(2,"0");
+const toISO=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+function dates(){
+  const out=[];const d=new Date(START);
+  while(true){out.push(toISO(d));if(toISO(d)>=END)break;d.setDate(d.getDate()+1)}
+  return out;
+}
+function jp(iso){
+  const d=new Date(iso);const w="日月火水木金土"[d.getDay()];
+  return `${d.getMonth()+1}/${d.getDate()}(${w})`;
+}
+function mapHref(v){
+  if(!v) return "";
+  if(/^https?:\/\//.test(v)) return v;
+  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(v);
+}
 
-    function dateList(startIso, endIso){
-      const out=[];
-      const d = new Date(startIso + "T00:00:00");
-      while(true){
-        const iso = toLocalISO(d);
-        out.push(iso);
-        if(iso >= endIso) break;
-        d.setDate(d.getDate()+1);
-      }
-      return out;
-    }
-    function formatJP(iso){
-      const d = new Date(iso + "T00:00:00");
-      const w = ["日","月","火","水","木","金","土"][d.getDay()];
-      return `${d.getMonth()+1}/${d.getDate()}(${w})`;
-    }
-    function escapeHtml(str){
-      return String(str).replace(/[&<>"']/g, c => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-    function toMapHref(input){
-      const s = String(input || "").trim();
-      if(!s) return "";
-      if(/^https?:\/\//i.test(s)) return s;
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s)}`;
-    }
+/* ========= data ========= */
+const emptyItem=()=>({id:crypto.randomUUID(),time:"",title:"",map:"",tags:[]});
+const emptyGrid=()=>Object.fromEntries(dates().map(d=>[d,Object.fromEntries(SLOTS.map(s=>[s.key,[]]))]));
 
-    // =====================
-    // 1枠=1件 形式
-    // cell: { time, title, map, tags[] }
-    // =====================
-    function emptyCell(){
-      return { time: "", title: "", map: "", tags: [] };
-    }
-    function makeGrid(){
-      const g = {};
-      dateList(START, END).forEach(date => {
-        g[date] = {};
-        SLOTS.forEach(s => g[date][s.key] = emptyCell());
-      });
-      return g;
-    }
-    function cleanTags(tags){
-      let t = Array.isArray(tags) ? tags.filter(x => TAGS.includes(x)) : [];
-      return t.includes("All") ? ["All"] : t;
-    }
-    function normalizeGrid(raw){
-      const g = makeGrid();
-      if(!raw || typeof raw !== "object") return g;
+/* ========= firebase ========= */
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
 
-      for(const date of Object.keys(g)){
-        for(const s of SLOTS){
-          const cell = raw?.[date]?.[s.key];
-          if(!cell || typeof cell !== "object") continue;
+const trip=new URL(location.href).searchParams.get("trip")||"t"+Math.random().toString(36).slice(2);
+const ref=doc(db,"trips",trip);
 
-          const time  = String(cell.time || "");
-          const title = String(cell.title || "");
-          const map   = String(cell.map || "");
-          const tags  = cleanTags(cell.tags);
+$("range").textContent=`${jp(START)}〜${jp(END)}`;
 
-          g[date][s.key] = { time, title, map, tags };
-        }
-      }
-      return g;
-    }
+let state={grid:emptyGrid()};
+let editing=null;
 
-    // =====================
-    // tripId（URL param）
-    // =====================
-    function randomTripId(){
-      return "t" + Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,6);
-    }
-    function getOrCreateTripId(){
-      const u = new URL(location.href);
-      let trip = u.searchParams.get("trip");
-      if(!trip){
-        trip = randomTripId();
-        u.searchParams.set("trip", trip);
-        history.replaceState(null, "", u.toString());
-      }
-      return trip;
-    }
-    const tripId = getOrCreateTripId();
-
-    $("range").textContent = `${formatJP(START)} 〜 ${formatJP(END)}`;
-    $("tripInfo").style.display = "block";
-    $("tripInfo").textContent = `このURLを共有すると同じ予定が見えます（ID: ${tripId}）`;
-
-    // =====================
-    // Firebase init
-    // =====================
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const tripRef = doc(db, "trips", tripId);
-
-    // =====================
-    // state
-    // =====================
-    let state = { grid: makeGrid() };
-    let editing = null; // {date, slotKey}
-    let draft = emptyCell();
-    let ready = false;
-    let unsub = null;
-
-    // =====================
-    // UI
-    // =====================
-    function renderTagBtns(){
-      const row = $("tagRow");
-      row.innerHTML = "";
-      TAGS.forEach(t => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "tag-btn" + (draft.tags.includes(t) ? " active" : "");
-        b.textContent = t;
-
-        b.onclick = () => {
-          if(t === "All"){
-            draft.tags = ["All"]; // All排他
-          }else{
-            draft.tags = draft.tags.filter(x => x !== "All");
-            if(draft.tags.includes(t)) draft.tags = draft.tags.filter(x => x !== t);
-            else draft.tags.push(t);
-          }
-          renderTagBtns();
-        };
-        row.appendChild(b);
-      });
-    }
-
-    function openEdit(date, slotKey){
-      editing = { date, slotKey };
-      const slotLabel = SLOTS.find(x => x.key === slotKey)?.label || slotKey;
-      $("sheetTitle").textContent = `${formatJP(date)} / ${slotLabel}`;
-
-      const cell = state.grid?.[date]?.[slotKey] || emptyCell();
-      draft = {
-        time:  String(cell.time || ""),
-        title: String(cell.title || ""),
-        map:   String(cell.map || ""),
-        tags:  cleanTags(cell.tags)
-      };
-
-      $("timeInput").value  = draft.time;
-      $("titleInput").value = draft.title;
-      $("mapInput").value   = draft.map;
-
-      renderTagBtns();
-
-      $("backdrop").style.display = "block";
-      $("sheet").style.display = "block";
-    }
-
-    function closeSheet(){
-      $("backdrop").style.display = "none";
-      $("sheet").style.display = "none";
-      editing = null;
-    }
-
-    function cellHasAny(cell){
-      const t = String(cell?.title || "").trim();
-      const m = String(cell?.map || "").trim();
-      const ti = String(cell?.time || "").trim();
-      const tags = Array.isArray(cell?.tags) ? cell.tags : [];
-      return Boolean(t || m || ti || tags.length);
-    }
-
-    function render(){
-      const root = $("root");
-      root.innerHTML = "";
-
-      dateList(START, END).forEach(date => {
-        const day = document.createElement("div");
-        day.className = "day";
-        day.innerHTML = `<strong>${formatJP(date)}</strong>`;
-
-        SLOTS.forEach(s => {
-          const cellData = state.grid?.[date]?.[s.key] || emptyCell();
-          const hasAny = cellHasAny(cellData);
-
-          const cell = document.createElement("div");
-          cell.className = "cell" + (hasAny ? "" : " empty");
-          cell.addEventListener("click", () => openEdit(date, s.key));
-
-          const mapHref = toMapHref(cellData.map);
-          if(mapHref){
-            const a = document.createElement("a");
-            a.className = "routeBadge";
-            a.href = mapHref;
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            a.textContent = "📍ルート検索";
-            a.addEventListener("click", (e) => e.stopPropagation());
-            cell.appendChild(a);
-          }
-
-          const title = document.createElement("div");
-          title.className = "cellTitle";
-          title.innerHTML = `<strong>${s.label}</strong>：${hasAny ? "" : "＋ 追加"}`;
-          cell.appendChild(title);
-
-          if(hasAny){
-            const row = document.createElement("div");
-            row.className = "rowline";
-            if(cellData.time){
-              const time = document.createElement("span");
-              time.className = "timePill";
-              time.textContent = `🕒 ${cellData.time}`;
-              row.appendChild(time);
-            }
-            if(cellData.title){
-              const t = document.createElement("span");
-              t.style.fontSize = "13px";
-              t.style.lineHeight = "1.35";
-              t.innerHTML = escapeHtml(cellData.title);
-              row.appendChild(t);
-            }
-            cell.appendChild(row);
-
-            if((cellData.tags||[]).length){
-              const chips = document.createElement("div");
-              chips.className = "chips";
-              cellData.tags.forEach(tg => {
-                const sp = document.createElement("span");
-                sp.className = "chip active";
-                sp.textContent = tg;
-                chips.appendChild(sp);
-              });
-              cell.appendChild(chips);
-            }
-          }
-
-          day.appendChild(cell);
-        });
-
-        root.appendChild(day);
-      });
-    }
-
-    // =====================
-    // Firestore
-    // =====================
-    async function ensureTripDoc(){
-      const snap = await getDoc(tripRef);
-      if(!snap.exists()){
-        await setDoc(tripRef, {
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          grid: makeGrid(),
+function render(){
+  const root=$("root");root.innerHTML="";
+  dates().forEach(d=>{
+    const day=document.createElement("div");
+    day.className="day";
+    day.innerHTML=`<strong>${jp(d)}</strong>`;
+    SLOTS.forEach(s=>{
+      const slot=document.createElement("div");
+      slot.className="slot";
+      slot.innerHTML=`<div class="slotHead">${s.label}</div>`;
+      const items=state.grid[d][s.key];
+      if(!items.length){
+        slot.innerHTML+=`<div class="item empty">＋ 追加</div>`;
+      }else{
+        items.forEach(it=>{
+          const row=document.createElement("div");
+          row.className="item";
+          row.onclick=()=>openEditor(d,s.key);
+          row.innerHTML=`
+            <span class="time">${it.time||"--:--"}</span>
+            <span class="title">${it.title||""}</span>
+            ${it.map?`<a class="route" href="${mapHref(it.map)}" target="_blank" onclick="event.stopPropagation()">📍</a>`:""}
+            <span class="tags">${it.tags.map(t=>`<span class="tag ${t==="All"?"all":""}">${t}</span>`).join("")}</span>
+          `;
+          slot.appendChild(row);
         });
       }
-    }
-
-    async function saveCell(date, slotKey, cell){
-      const payload = {
-        time:  String(cell.time || "").trim(),
-        title: String(cell.title || "").trim(),
-        map:   String(cell.map || "").trim(),
-        tags:  cleanTags(cell.tags)
-      };
-
-      const update = {};
-      update[`grid.${date}.${slotKey}`] = payload;
-      update["updatedAt"] = serverTimestamp();
-      await updateDoc(tripRef, update);
-    }
-
-    // =====================
-    // Events
-    // =====================
-    $("backdrop").addEventListener("click", closeSheet);
-    $("closeBtn").addEventListener("click", closeSheet);
-
-    $("timeInput").addEventListener("input", (e) => (draft.time = e.target.value));
-    $("titleInput").addEventListener("input", (e) => (draft.title = e.target.value));
-    $("mapInput").addEventListener("input", (e) => (draft.map = e.target.value));
-
-    $("clearBtn").addEventListener("click", () => {
-      draft = emptyCell();
-      $("timeInput").value = "";
-      $("titleInput").value = "";
-      $("mapInput").value = "";
-      renderTagBtns();
+      slot.onclick=()=>openEditor(d,s.key);
+      day.appendChild(slot);
     });
+    root.appendChild(day);
+  });
+}
 
-    $("saveBtn").addEventListener("click", async () => {
-      try{
-        if(!editing) return;
-        if(!ready){
-          alert("Firebase初期化中です。数秒待ってから保存してください。");
-          return;
-        }
-        await saveCell(editing.date, editing.slotKey, draft);
-        closeSheet();
-      }catch(e){
-        console.error("SAVE FAILED", e);
-        alert("保存に失敗しました。\n\n" + (e?.message || e));
+/* ========= editor ========= */
+function openEditor(date,slot){
+  editing={date,slot};
+  const list=state.grid[date][slot];
+  $("sheetTitle").textContent=`${jp(date)} / ${SLOTS.find(s=>s.key===slot).label}`;
+  $("addItemBtn").style.display=list.length?"block":"none";
+  const wrap=$("itemsEditor");wrap.innerHTML="";
+  list.forEach(it=>wrap.appendChild(itemEditor(it)));
+  if(!list.length) wrap.appendChild(itemEditor(emptyItem()));
+  $("sheet").style.display="block";
+  $("backdrop").style.display="block";
+}
+
+function itemEditor(it){
+  const div=document.createElement("div");
+  div.innerHTML=`
+    <div class="row2">
+      <input type="time" class="input" value="${it.time}">
+      <input class="input" placeholder="予定名" value="${it.title}">
+    </div>
+    <input class="input" placeholder="場所" value="${it.map}">
+    <div class="tagRow"></div>
+    <hr>
+  `;
+  const [time,title,map]=div.querySelectorAll("input");
+  const tagRow=div.querySelector(".tagRow");
+
+  TAGS.forEach(t=>{
+    const b=document.createElement("button");
+    b.className="tagBtn"+(it.tags.includes(t)?" active":"");
+    b.textContent=t;
+    b.onclick=()=>{
+      if(t==="All") it.tags=["All"];
+      else{
+        it.tags=it.tags.filter(x=>x!=="All");
+        it.tags.includes(t)?it.tags=it.tags.filter(x=>x!==t):it.tags.push(t);
       }
-    });
+      render();
+      openEditor(editing.date,editing.slot);
+    };
+    tagRow.appendChild(b);
+  });
 
-    // =====================
-    // Boot
-    // =====================
+  time.oninput=e=>it.time=e.target.value;
+  title.oninput=e=>it.title=e.target.value;
+  map.oninput=e=>it.map=e.target.value;
+  return div;
+}
+
+$("addItemBtn").onclick=()=>{
+  state.grid[editing.date][editing.slot].push(emptyItem());
+  openEditor(editing.date,editing.slot);
+};
+
+$("closeBtn").onclick=()=>{$("sheet").style.display="none";$("backdrop").style.display="none"};
+
+$("saveBtn").onclick=async()=>{
+  await updateDoc(ref,{grid:state.grid,updatedAt:serverTimestamp()});
+  $("sheet").style.display="none";
+  $("backdrop").style.display="none";
+};
+
+/* ========= boot ========= */
+render();
+signInAnonymously(auth);
+onAuthStateChanged(auth,async u=>{
+  if(!u)return;
+  const snap=await getDoc(ref);
+  if(!snap.exists()) await setDoc(ref,{grid:state.grid,createdAt:serverTimestamp()});
+  onSnapshot(ref,s=>{
+    state.grid=s.data().grid;
     render();
-
-    signInAnonymously(auth).catch((e) => {
-      console.error(e);
-      alert("匿名ログインに失敗しました。Firebase AuthenticationでAnonymousを有効化してください。");
-    });
-
-    onAuthStateChanged(auth, async (user) => {
-      if(!user) return;
-
-      await ensureTripDoc();
-      ready = true;
-
-      if(unsub) unsub();
-      unsub = onSnapshot(tripRef, (snap) => {
-        const data = snap.data();
-        if(!data) return;
-        state.grid = normalizeGrid(data.grid);
-        render();
-      }, (err) => {
-        console.error(err);
-        alert("Firestore購読に失敗しました。Firestoreルールを確認してください。");
-      });
-    });
-  </script>
+  });
+});
+</script>
 </body>
 </html>
     
