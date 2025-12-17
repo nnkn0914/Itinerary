@@ -14,15 +14,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>旅行スケジュール🌴</title>
+<title>幸せハワイ計画🌴</title>
 <style>
   :root{
     --border:#ddd; --bg:#f6f6f6; --text:#111; --muted:#666; --black:#111;
     --ok:#0b7a2a;
 
-    /* book category */
-    --catBg:#eaf6ff;         /* 薄い水色 */
-    --catBorder:#cfe9ff;     /* 切れ目用の枠 */
+    /* fab color (黒以外) */
+    --fab:#1e66ff;        /* ブルー */
+    --fabShadow: rgba(30,102,255,.28);
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--text);background:#fff;}
@@ -62,6 +62,7 @@
   .slot{margin-top:10px;}
   .slotLabel{font-size:12px;font-weight:900;color:#333;margin-bottom:6px;}
 
+  /* row (schedule & book item unified look) */
   .row{
     display:flex; align-items:center; gap:8px;
     padding:6px 8px; border-radius:12px; background:var(--bg);
@@ -85,52 +86,80 @@
   .bookTitle{font-weight:900;font-size:16px;margin:0;}
   .bookSub{font-size:12px;color:var(--muted);margin-top:4px;}
 
-  /* ✅ カテゴリごとの「薄い水色背景＋枠」 */
+  /* ✅ カテゴリ背景は白に戻す */
   .bookSection{
     margin-top:14px;
-    border:1px solid var(--catBorder);
+    border:1px solid rgba(0,0,0,.06);
     border-radius:14px;
     padding:10px;
-    background:var(--catBg);
+    background:#fff;
   }
   .bookSectionTitle{
     font-weight:900;
     font-size:13px;
     margin:0 0 6px 0;
-    color:#0b3d66;
+    color:#333;
     display:flex;
     align-items:center;
     justify-content:space-between;
   }
-  .bookRow{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 10px;
-    border:1px solid rgba(0,0,0,.08);
-    border-radius:14px;
-    margin-top:10px;
-    background:#fff;
+
+  /* ✅ ブックリストのアイテム：枠線なし薄グレー、縦幅小さく */
+  .bookItem{
+    display:flex; align-items:center; gap:8px;
+    padding:6px 8px;
+    border-radius:12px;
+    background:var(--bg);   /* schedule row と同じ */
+    margin-top:8px;
     cursor:pointer;
+    border:none;            /* 枠線なし */
   }
   .bookLeft{min-width:0; flex:1 1 auto;}
-  .bookName{font-weight:900; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .bookMeta{margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
-  .badge{
-    font-size:11px; padding:3px 8px; border-radius:999px;
-    border:1px solid var(--border); background:#fff; color:#111; white-space:nowrap;
+  .bookName{
+    font-weight:900;
+    font-size:13px;          /* 少し小さく */
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    line-height:1.2;
   }
-  .badge.ok{border-color:rgba(11,122,42,.3); background:rgba(11,122,42,.08); color:var(--ok); font-weight:900;}
 
-  .bookActions{display:flex; gap:8px; align-items:center; flex:0 0 auto;}
-  .miniLink{
-    font-size:12px; font-weight:900;
-    padding:8px 10px; border-radius:999px;
-    border:1px solid var(--border); background:#fff; text-decoration:none; color:#111;
-    display:inline-flex; align-items:center; gap:6px;
+  .badge{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;
+    color:#111;
+    white-space:nowrap;
+    line-height:1.2;
+    display:inline-flex;
+    align-items:center;
   }
-  .miniLink.primary{background:#111;color:#fff;border-color:#111;}
+  .badge.ok{
+    border-color:rgba(11,122,42,.3);
+    background:rgba(11,122,42,.08);
+    color:var(--ok);
+    font-weight:900;
+  }
+
+  /* ✅ 地図ボタンを小さく・縦幅を予定済バッジと揃える */
+  .miniLink{
+    font-size:11px;
+    font-weight:900;
+    padding:3px 8px;         /* badgeと同じ高さ感 */
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#111;
+    color:#fff;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    line-height:1.2;
+    flex:0 0 auto;
+  }
   .miniLink:active{transform:translateY(1px)}
 
-  /* ✅ Floating + button (booklist only) */
+  /* ✅ Floating + button */
   .fab{
     position:fixed;
     right:16px;
@@ -139,14 +168,14 @@
     height:56px;
     border-radius:999px;
     border:none;
-    background:#111;
+    background:var(--fab);
     color:#fff;
     font-size:30px;
     font-weight:900;
     display:none; /* booklist時だけ */
     align-items:center;
     justify-content:center;
-    box-shadow:0 10px 24px rgba(0,0,0,.22);
+    box-shadow:0 10px 24px var(--fabShadow);
     cursor:pointer;
     z-index:70;
   }
@@ -225,7 +254,7 @@
       </div>
     </div>
 
-    <h2 style="margin-top:10px;">旅行スケジュール🌴</h2>
+    <h2 style="margin-top:10px;">幸せハワイ計画🌴</h2>
     <div class="sub" id="range"></div>
     <div class="hint" id="hint">タップして編集（同時編集・自動保存）</div>
   </div>
@@ -233,7 +262,6 @@
   <div id="root"></div>
 </div>
 
-<!-- ✅ 右下フロート：＋だけ -->
 <button class="fab" id="fabAdd" type="button" aria-label="追加">＋</button>
 
 <div class="backdrop" id="backdrop"></div>
@@ -446,18 +474,22 @@ const firebaseConfig = {
     await updateDoc(tripRef, { booklist: cleaned, updatedAt: serverTimestamp() });
   }
 
-  function plannedMapKeySet(){
-    const set = new Set();
+  // ✅ 予定済判定のために「予定の地図リンク」と「予定名」をセット化
+  function plannedSets(){
+    const linkSet = new Set();
+    const titleSet = new Set();
     for(const d of Object.keys(state.grid||{})){
       for(const s of SLOTS){
         const items = state.grid?.[d]?.[s.key] || [];
         items.forEach(it=>{
-          const k = normalizeMapKey(it.map);
-          if(k) set.add(k);
+          const linkKey = normalizeMapKey(it.map);
+          if(linkKey) linkSet.add(linkKey);
+          const t = String(it.title||"").trim();
+          if(t) titleSet.add(t);
         });
       }
     }
-    return set;
+    return { linkSet, titleSet };
   }
 
   function setView(next){
@@ -466,11 +498,9 @@ const firebaseConfig = {
     $("tabBook").classList.toggle("active", view==="book");
     $("hint").textContent = view==="schedule"
       ? "タップして編集（同時編集・自動保存）"
-      : "行きたい場所をストック（予定と同じ地図リンクがあると「予定済」表示）";
+      : "行きたい場所をストック（予定と一致すると「予定済」表示）";
 
-    // ✅ booklistのみ右下+表示
     $("fabAdd").style.display = (view==="book") ? "flex" : "none";
-
     render();
   }
 
@@ -566,7 +596,7 @@ const firebaseConfig = {
     const root=$("root");
     root.innerHTML="";
 
-    const planned = plannedMapKeySet();
+    const { linkSet, titleSet } = plannedSets();
 
     const head=document.createElement("div");
     head.className="bookHead";
@@ -608,9 +638,9 @@ const firebaseConfig = {
       sec.appendChild(h);
 
       items.forEach(b=>{
-        const row=document.createElement("div");
-        row.className="bookRow";
-        row.onclick=()=>openBookEditor(b.id);
+        const item=document.createElement("div");
+        item.className="bookItem";
+        item.onclick=()=>openBookEditor(b.id);
 
         const left=document.createElement("div");
         left.className="bookLeft";
@@ -629,8 +659,10 @@ const firebaseConfig = {
         name.style.minWidth = "0";
         nameRow.appendChild(name);
 
+        // ✅ 予定済条件：リンク一致 OR 場所名==予定名
         const key = normalizeMapKey(b.map);
-        const isPlanned = key && planned.has(key);
+        const bn = String(b.name||"").trim();
+        const isPlanned = (key && linkSet.has(key)) || (bn && titleSet.has(bn));
         if(isPlanned){
           const ok=document.createElement("span");
           ok.className="badge ok";
@@ -639,29 +671,21 @@ const firebaseConfig = {
         }
 
         left.appendChild(nameRow);
+        item.appendChild(left);
 
-        const meta=document.createElement("div");
-        meta.className="bookMeta";
-        left.appendChild(meta);
-
-        row.appendChild(left);
-
-        const actions=document.createElement("div");
-        actions.className="bookActions";
-
+        // ✅ 地図ボタン（小さく）
         if(String(b.map||"").trim()){
           const a=document.createElement("a");
-          a.className="miniLink primary";
+          a.className="miniLink";
           a.href = mapHref(b.map);
           a.target="_blank";
           a.rel="noopener noreferrer";
           a.textContent="📍地図";
           a.onclick=(e)=>e.stopPropagation();
-          actions.appendChild(a);
+          item.appendChild(a);
         }
 
-        row.appendChild(actions);
-        sec.appendChild(row);
+        sec.appendChild(item);
       });
 
       root.appendChild(sec);
@@ -959,7 +983,6 @@ const firebaseConfig = {
     });
   });
 
-  // 初期は予定画面
   setView("schedule");
 </script>
 </body>
