@@ -18,10 +18,15 @@
 <style>
   :root{
     --border:#ddd; --bg:#f6f6f6; --text:#111; --muted:#666; --black:#111;
+    --ok:#0b7a2a;
+
+    /* book category */
+    --catBg:#eaf6ff;         /* 薄い水色 */
+    --catBorder:#cfe9ff;     /* 切れ目用の枠 */
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--text);background:#fff;}
-  .app{max-width:760px;margin:0 auto;padding:12px;}
+  .app{max-width:860px;margin:0 auto;padding:12px; padding-bottom:84px;}
 
   h2{margin:0;font-size:20px;line-height:1.2;}
   .sub{margin-top:4px;font-size:12px;color:var(--muted);}
@@ -32,84 +37,120 @@
     padding:10px 0; border-bottom:1px solid rgba(0,0,0,.06);
   }
 
+  .nav{display:flex; gap:8px; align-items:center; justify-content:flex-end;}
+  .tabs{display:flex; gap:8px; align-items:center;}
+  .tab{
+    border:1px solid var(--border);
+    background:#fff;
+    padding:10px 12px;
+    border-radius:999px;
+    font-weight:900;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+  }
+  .tab.active{background:#111;color:#fff;border-color:#111;}
+  .tab:active{transform:translateY(1px)}
+  .tab .icon{font-size:14px; line-height:1; opacity:.9;}
+
+  /* schedule cards */
   .day{border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:12px;}
   .day strong{font-size:14px;}
 
   .slot{margin-top:10px;}
   .slotLabel{font-size:12px;font-weight:900;color:#333;margin-bottom:6px;}
 
-  /* メイン：1行コンパクト */
   .row{
     display:flex; align-items:center; gap:8px;
     padding:6px 8px; border-radius:12px; background:var(--bg);
     margin-top:6px; cursor:pointer;
   }
   .row.empty{opacity:.55; padding:6px 8px;}
+  .time{font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:12px;width:56px;flex:0 0 auto;}
+  .main{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto;}
+  .title{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;flex:0 1 auto;}
+  .tags{display:flex;gap:4px;flex:0 0 auto;flex-wrap:nowrap;overflow:hidden;max-width:240px;}
+  .tag{font-size:10px;padding:2px 6px;border-radius:999px;border:1px solid var(--border);background:#fff;white-space:nowrap;color:#111;}
 
-  .time{
-    font-weight:900;
-    font-variant-numeric:tabular-nums;
-    white-space:nowrap;
-    font-size:12px;
-    width:56px;               /* 時間の幅を固定して揃える */
-    flex:0 0 auto;
-  }
-
-  /* ✅ 予定名 + タグをまとめる（ルート検索を右端固定するため） */
-  .main{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    min-width:0;
-    flex:1 1 auto;
-  }
-
-  .title{
-    min-width:0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-size:13px;
-    flex:0 1 auto;
-  }
-
-  /* ✅ タグは予定名の横（同一ブロック内） */
-  .tags{
-    display:flex;
-    gap:4px;
-    flex:0 0 auto;
-    flex-wrap:nowrap;
-    overflow:hidden;           /* タグが多い時は切れる（右端のボタンは残る） */
-    max-width:220px;
-  }
-
-  .tag{
-    font-size:10px;
-    padding:2px 6px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    background:#fff;           /* ✅ Allも白背景 */
-    white-space:nowrap;
-    color:#111;
-  }
-
-  /* ✅ ルート検索は常に右端固定 */
   .route{
-    font-size:11px;
-    padding:5px 9px;
-    border-radius:999px;
-    background:#111;
-    color:#fff;
-    text-decoration:none;
-    white-space:nowrap;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    font-weight:900;
-    margin-left:auto;          /* ✅ 右端へ押し出す */
-    flex:0 0 auto;
+    font-size:11px;padding:5px 9px;border-radius:999px;background:#111;color:#fff;text-decoration:none;
+    white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-weight:900;margin-left:auto;flex:0 0 auto;
   }
   .route:active{transform:translateY(1px);}
+
+  /* booklist */
+  .bookHead{display:flex; align-items:flex-end; justify-content:space-between; gap:8px; margin-top:10px;}
+  .bookTitle{font-weight:900;font-size:16px;margin:0;}
+  .bookSub{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  /* ✅ カテゴリごとの「薄い水色背景＋枠」 */
+  .bookSection{
+    margin-top:14px;
+    border:1px solid var(--catBorder);
+    border-radius:14px;
+    padding:10px;
+    background:var(--catBg);
+  }
+  .bookSectionTitle{
+    font-weight:900;
+    font-size:13px;
+    margin:0 0 6px 0;
+    color:#0b3d66;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .bookRow{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 10px;
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:14px;
+    margin-top:10px;
+    background:#fff;
+    cursor:pointer;
+  }
+  .bookLeft{min-width:0; flex:1 1 auto;}
+  .bookName{font-weight:900; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .bookMeta{margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .badge{
+    font-size:11px; padding:3px 8px; border-radius:999px;
+    border:1px solid var(--border); background:#fff; color:#111; white-space:nowrap;
+  }
+  .badge.ok{border-color:rgba(11,122,42,.3); background:rgba(11,122,42,.08); color:var(--ok); font-weight:900;}
+
+  .bookActions{display:flex; gap:8px; align-items:center; flex:0 0 auto;}
+  .miniLink{
+    font-size:12px; font-weight:900;
+    padding:8px 10px; border-radius:999px;
+    border:1px solid var(--border); background:#fff; text-decoration:none; color:#111;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .miniLink.primary{background:#111;color:#fff;border-color:#111;}
+  .miniLink:active{transform:translateY(1px)}
+
+  /* ✅ Floating + button (booklist only) */
+  .fab{
+    position:fixed;
+    right:16px;
+    bottom:18px;
+    width:56px;
+    height:56px;
+    border-radius:999px;
+    border:none;
+    background:#111;
+    color:#fff;
+    font-size:30px;
+    font-weight:900;
+    display:none; /* booklist時だけ */
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 10px 24px rgba(0,0,0,.22);
+    cursor:pointer;
+    z-index:70;
+  }
+  .fab:active{transform:translateY(1px);}
 
   /* bottom sheet */
   .backdrop{position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:80; display:none;}
@@ -117,10 +158,10 @@
     position:fixed; left:0; right:0; bottom:0;
     background:#fff; border-top:1px solid var(--border);
     border-radius:16px 16px 0 0;
-    max-width:760px; margin:0 auto;
+    max-width:860px; margin:0 auto;
     z-index:90; display:none;
   }
-  .sheetInner{padding:12px; max-height:62vh; overflow:auto;}
+  .sheetInner{padding:12px; max-height:65vh; overflow:auto;}
   .sheetHead{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .sheetHead h4{margin:0; font-size:14px;}
 
@@ -128,7 +169,7 @@
     font-size:12px; font-weight:900;
     border:1px solid var(--border);
     padding:8px 12px; border-radius:999px; background:#fff;
-    cursor:pointer; display:none;
+    cursor:pointer; display:none; /* schedule側の複数予定用 */
   }
   .addBtn:active{transform:translateY(1px);}
 
@@ -147,6 +188,7 @@
     width:100%; padding:10px; border:1px solid var(--border);
     border-radius:12px; font-size:14px; margin-top:6px;
   }
+  select.input{appearance:auto;}
 
   .tagRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
   .tagBtn{
@@ -161,24 +203,38 @@
     background:#fff; font-weight:900; font-size:15px; cursor:pointer;
   }
   .btn.primary{background:#111;color:#fff;border-color:#111; flex:1.2;}
+  .btn.danger{border-color:#f0b8b8; color:#b00020;}
   .btn:active{transform:translateY(1px);}
 
-  @media (max-width:520px){
+  @media (max-width:560px){
     h2{font-size:18px;}
     .row2{grid-template-columns:1fr;}
-    .tags{max-width:150px;}
+    .tags{max-width:160px;}
+    .tab{padding:9px 10px; font-size:12px;}
+    .fab{right:14px; bottom:16px; width:54px; height:54px;}
   }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="topbar">
-    <h2>旅行スケジュール🌴</h2>
+    <div class="nav">
+      <div class="tabs">
+        <button class="tab active" id="tabSchedule" type="button"><span>スケジュール</span><span class="icon">🗓️</span></button>
+        <button class="tab" id="tabBook" type="button"><span>ブックリスト</span><span class="icon">📚</span></button>
+      </div>
+    </div>
+
+    <h2 style="margin-top:10px;">旅行スケジュール🌴</h2>
     <div class="sub" id="range"></div>
-    <div class="hint">タップして編集（同時編集・自動保存）</div>
+    <div class="hint" id="hint">タップして編集（同時編集・自動保存）</div>
   </div>
+
   <div id="root"></div>
 </div>
+
+<!-- ✅ 右下フロート：＋だけ -->
+<button class="fab" id="fabAdd" type="button" aria-label="追加">＋</button>
 
 <div class="backdrop" id="backdrop"></div>
 <div class="sheet" id="sheet">
@@ -189,8 +245,9 @@
     </div>
     <div id="editor"></div>
   </div>
-  <div class="actions">
+  <div class="actions" id="sheetActions">
     <button class="btn" id="closeBtn" type="button">閉じる</button>
+    <button class="btn danger" id="deleteBtn" type="button" style="display:none;">削除</button>
     <button class="btn primary" id="saveBtn" type="button">保存</button>
   </div>
 </div>
@@ -204,8 +261,9 @@
   const TAGS=["All","あんぱ","あんま","こうすけ","なお"];
   const START="2025-12-22";
   const END="2026-01-09";
+  const CATEGORIES=["食事・カフェ","レジャー","買い物"];
 
-  // ⚠️あなたのfirebaseConfigに置換
+  // ⚠️ あなたのfirebaseConfigに置換
 const firebaseConfig = {
   apiKey: "AIzaSyCzLFbx3hKRF5fzLb2qEoQb1RjuBKL9L64",
   authDomain: "itinerary-60bec.firebaseapp.com",
@@ -236,14 +294,32 @@ const firebaseConfig = {
     const w="日月火水木金土"[d.getDay()];
     return `${d.getMonth()+1}/${d.getDate()}(${w})`;
   }
+  function id(){
+    return "i"+Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6);
+  }
+
+  function isHttpUrl(s){
+    return /^https?:\/\//i.test(String(s||"").trim());
+  }
   function mapHref(v){
     const s=String(v||"").trim();
     if(!s) return "";
-    if(/^https?:\/\//i.test(s)) return s;
+    if(isHttpUrl(s)) return s;
     return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s);
   }
-  function id(){
-    return "i"+Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6);
+
+  function normalizeMapKey(v){
+    const href = mapHref(v);
+    if(!href) return "";
+    try{
+      const u = new URL(href);
+      ["utm_source","utm_medium","utm_campaign","utm_term","utm_content"].forEach(k=>u.searchParams.delete(k));
+      let s = u.toString();
+      if(s.endsWith("/")) s = s.slice(0,-1);
+      return s;
+    }catch{
+      return href.trim().replace(/\/$/,"");
+    }
   }
 
   const emptyItem = ()=>({id:id(), time:"", title:"", map:"", tags:[]});
@@ -255,10 +331,14 @@ const firebaseConfig = {
     }
     return g;
   }
+
+  const emptyBook = ()=>({ id:id(), name:"", category:"食事・カフェ", map:"" });
+
   function cleanTags(tags){
     let t = Array.isArray(tags) ? tags.filter(x=>TAGS.includes(x)) : [];
     return t.includes("All") ? ["All"] : t;
   }
+
   function normalizeGrid(raw){
     const g=makeGrid();
     if(!raw || typeof raw!=="object") return g;
@@ -288,6 +368,20 @@ const firebaseConfig = {
     return g;
   }
 
+  function normalizeBooklist(raw){
+    const out=[];
+    if(!Array.isArray(raw)) return out;
+    raw.forEach(x=>{
+      const name=String(x?.name||"").trim();
+      const category = CATEGORIES.includes(String(x?.category||"")) ? String(x.category) : "食事・カフェ";
+      const map=String(x?.map||"").trim();
+      const ok = name || map;
+      if(!ok) return;
+      out.push({ id:String(x?.id||id()), name, category, map });
+    });
+    return out;
+  }
+
   function getTripId(){
     const u=new URL(location.href);
     let t=u.searchParams.get("trip");
@@ -307,17 +401,25 @@ const firebaseConfig = {
   const auth = getAuth(app);
   const tripRef = doc(db, "trips", tripId);
 
-  let state = { grid: makeGrid() };
+  let view = "schedule";
+  let state = { grid: makeGrid(), booklist: [] };
   let editing = null;
   let draftItems = [];
+  let draftBook = null;
   let ready=false;
 
   async function ensureDoc(){
     const snap = await getDoc(tripRef);
     if(!snap.exists()){
-      await setDoc(tripRef, { grid: makeGrid(), createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+      await setDoc(tripRef, {
+        grid: makeGrid(),
+        booklist: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
     }
   }
+
   async function saveSlot(date, slotKey, items){
     const cleaned = (items||[]).map(x=>({
       id: String(x.id || id()),
@@ -333,7 +435,55 @@ const firebaseConfig = {
     await updateDoc(tripRef, update);
   }
 
-  function renderMain(){
+  async function saveBooklist(next){
+    const cleaned = (next||[]).map(x=>({
+      id: String(x.id || id()),
+      name: String(x.name||"").trim(),
+      category: CATEGORIES.includes(String(x.category||"")) ? String(x.category) : "食事・カフェ",
+      map: String(x.map||"").trim()
+    })).filter(x=>x.name || x.map);
+
+    await updateDoc(tripRef, { booklist: cleaned, updatedAt: serverTimestamp() });
+  }
+
+  function plannedMapKeySet(){
+    const set = new Set();
+    for(const d of Object.keys(state.grid||{})){
+      for(const s of SLOTS){
+        const items = state.grid?.[d]?.[s.key] || [];
+        items.forEach(it=>{
+          const k = normalizeMapKey(it.map);
+          if(k) set.add(k);
+        });
+      }
+    }
+    return set;
+  }
+
+  function setView(next){
+    view = next;
+    $("tabSchedule").classList.toggle("active", view==="schedule");
+    $("tabBook").classList.toggle("active", view==="book");
+    $("hint").textContent = view==="schedule"
+      ? "タップして編集（同時編集・自動保存）"
+      : "行きたい場所をストック（予定と同じ地図リンクがあると「予定済」表示）";
+
+    // ✅ booklistのみ右下+表示
+    $("fabAdd").style.display = (view==="book") ? "flex" : "none";
+
+    render();
+  }
+
+  $("tabSchedule").addEventListener("click", ()=>setView("schedule"));
+  $("tabBook").addEventListener("click", ()=>setView("book"));
+  $("fabAdd").addEventListener("click", ()=>openBookEditor(null));
+
+  function render(){
+    if(view==="schedule") renderSchedule();
+    else renderBooklist();
+  }
+
+  function renderSchedule(){
     const root=$("root");
     root.innerHTML="";
 
@@ -357,20 +507,19 @@ const firebaseConfig = {
           const row=document.createElement("div");
           row.className="row empty";
           row.innerHTML = `<span class="title">＋ 追加</span>`;
-          row.onclick = ()=>openEditor(d, s.key);
+          row.onclick = ()=>openSlotEditor(d, s.key);
           slot.appendChild(row);
         }else{
           items.forEach(it=>{
             const row=document.createElement("div");
             row.className="row";
-            row.onclick = ()=>openEditor(d, s.key);
+            row.onclick = ()=>openSlotEditor(d, s.key);
 
             const time=document.createElement("span");
             time.className="time";
             time.textContent = it.time ? it.time : "--:--";
             row.appendChild(time);
 
-            // ✅ 予定名の横にタグ（mainブロック）
             const main=document.createElement("div");
             main.className="main";
 
@@ -383,7 +532,7 @@ const firebaseConfig = {
             tags.className="tags";
             (it.tags||[]).forEach(t=>{
               const sp=document.createElement("span");
-              sp.className="tag"; // ✅ Allも同じ見た目（白背景）
+              sp.className="tag";
               sp.textContent=t;
               tags.appendChild(sp);
             });
@@ -391,7 +540,6 @@ const firebaseConfig = {
 
             row.appendChild(main);
 
-            // ✅ ルート検索を一番右端に固定
             if(String(it.map||"").trim()){
               const a=document.createElement("a");
               a.className="route";
@@ -414,10 +562,119 @@ const firebaseConfig = {
     }
   }
 
-  function openEditor(date, slotKey){
-    editing = {date, slotKey};
-    const slotLabel = SLOTS.find(x=>x.key===slotKey)?.label || slotKey;
-    $("sheetTitle").textContent = `${formatJP(date)} / ${slotLabel}`;
+  function renderBooklist(){
+    const root=$("root");
+    root.innerHTML="";
+
+    const planned = plannedMapKeySet();
+
+    const head=document.createElement("div");
+    head.className="bookHead";
+    const left=document.createElement("div");
+    left.innerHTML = `
+      <div class="bookTitle">ブックリスト</div>
+      <div class="bookSub">trip: ${tripId}</div>
+    `;
+    head.appendChild(left);
+    root.appendChild(head);
+
+    if(!state.booklist.length){
+      const empty=document.createElement("div");
+      empty.style.marginTop="12px";
+      empty.style.color="var(--muted)";
+      empty.style.fontSize="13px";
+      empty.textContent="まだ登録がありません。右下の「＋」から登録できます。";
+      root.appendChild(empty);
+      return;
+    }
+
+    const grouped = {};
+    CATEGORIES.forEach(c=>grouped[c]=[]);
+    state.booklist.forEach(b=>{
+      const c = CATEGORIES.includes(b.category) ? b.category : CATEGORIES[0];
+      grouped[c].push(b);
+    });
+
+    CATEGORIES.forEach(cat=>{
+      const items = grouped[cat] || [];
+      if(!items.length) return;
+
+      const sec=document.createElement("div");
+      sec.className="bookSection";
+
+      const h=document.createElement("div");
+      h.className="bookSectionTitle";
+      h.textContent = cat;
+      sec.appendChild(h);
+
+      items.forEach(b=>{
+        const row=document.createElement("div");
+        row.className="bookRow";
+        row.onclick=()=>openBookEditor(b.id);
+
+        const left=document.createElement("div");
+        left.className="bookLeft";
+
+        // ✅ 場所名の横に「予定済」
+        const nameRow = document.createElement("div");
+        nameRow.style.display = "flex";
+        nameRow.style.alignItems = "center";
+        nameRow.style.gap = "8px";
+        nameRow.style.minWidth = "0";
+
+        const name=document.createElement("div");
+        name.className="bookName";
+        name.textContent = b.name || "(名称未入力)";
+        name.style.flex = "1 1 auto";
+        name.style.minWidth = "0";
+        nameRow.appendChild(name);
+
+        const key = normalizeMapKey(b.map);
+        const isPlanned = key && planned.has(key);
+        if(isPlanned){
+          const ok=document.createElement("span");
+          ok.className="badge ok";
+          ok.textContent="✅ 予定済";
+          nameRow.appendChild(ok);
+        }
+
+        left.appendChild(nameRow);
+
+        const meta=document.createElement("div");
+        meta.className="bookMeta";
+        left.appendChild(meta);
+
+        row.appendChild(left);
+
+        const actions=document.createElement("div");
+        actions.className="bookActions";
+
+        if(String(b.map||"").trim()){
+          const a=document.createElement("a");
+          a.className="miniLink primary";
+          a.href = mapHref(b.map);
+          a.target="_blank";
+          a.rel="noopener noreferrer";
+          a.textContent="📍地図";
+          a.onclick=(e)=>e.stopPropagation();
+          actions.appendChild(a);
+        }
+
+        row.appendChild(actions);
+        sec.appendChild(row);
+      });
+
+      root.appendChild(sec);
+    });
+  }
+
+  function openSlotEditor(date, slotKey){
+    editing = { type:"slot", date, slotKey };
+
+    $("deleteBtn").style.display="none";
+    $("addBtn").style.display="none";
+    $("sheetTitle").textContent = `${formatJP(date)} / ${SLOTS.find(x=>x.key===slotKey)?.label || slotKey}`;
+    $("saveBtn").textContent="保存";
 
     const cur = state.grid?.[date]?.[slotKey] || [];
     draftItems = cur.length
@@ -425,29 +682,16 @@ const firebaseConfig = {
       : [ emptyItem() ];
 
     $("addBtn").style.display = (cur.length >= 1) ? "inline-block" : "none";
-
-    renderEditor();
-
-    $("backdrop").style.display="block";
-    $("sheet").style.display="block";
+    renderSlotEditor();
+    openSheet();
   }
 
-  function closeEditor(){
-    $("backdrop").style.display="none";
-    $("sheet").style.display="none";
-    editing=null;
-    draftItems=[];
-  }
-
-  function renderEditor(){
+  function renderSlotEditor(){
     const box=$("editor");
     box.innerHTML="";
-    draftItems.forEach((it, idx)=>{
-      box.appendChild(itemEditor(it, idx));
-    });
+    draftItems.forEach((it, idx)=> box.appendChild(itemEditor(it, idx)));
   }
 
-  // タグで再描画しない（入力が消えない）
   function itemEditor(it, idx){
     const wrap=document.createElement("div");
     wrap.className="setBox";
@@ -470,7 +714,7 @@ const firebaseConfig = {
         if(i>=0){
           draftItems.splice(i,1);
           $("addBtn").style.display = (draftItems.length >= 1) ? "inline-block" : "none";
-          renderEditor();
+          renderSlotEditor();
         }
       };
       head.appendChild(del);
@@ -524,12 +768,9 @@ const firebaseConfig = {
 
       b.onclick=()=>{
         it.tags = Array.isArray(it.tags) ? it.tags : [];
-
         if(t==="All"){
           it.tags=["All"];
-          [...tagRow.children].forEach(btn=>{
-            btn.classList.toggle("active", btn.textContent==="All");
-          });
+          [...tagRow.children].forEach(btn=> btn.classList.toggle("active", btn.textContent==="All"));
         }else{
           it.tags = it.tags.filter(x=>x!=="All");
           if(it.tags.includes(t)){
@@ -539,12 +780,9 @@ const firebaseConfig = {
             it.tags.push(t);
             b.classList.add("active");
           }
-          [...tagRow.children].forEach(btn=>{
-            if(btn.textContent==="All") btn.classList.remove("active");
-          });
+          [...tagRow.children].forEach(btn=>{ if(btn.textContent==="All") btn.classList.remove("active"); });
         }
       };
-
       tagRow.appendChild(b);
     });
 
@@ -552,13 +790,105 @@ const firebaseConfig = {
     return wrap;
   }
 
+  function openBookEditor(bookId){
+    editing = { type:"book", id: bookId };
+
+    $("addBtn").style.display="none";
+    $("saveBtn").textContent="保存";
+
+    const found = state.booklist.find(x=>x.id===bookId);
+    draftBook = found ? { ...found } : emptyBook();
+
+    $("sheetTitle").textContent = bookId ? "ブックリスト編集" : "ブックリスト追加";
+    $("deleteBtn").style.display = bookId ? "inline-block" : "none";
+
+    renderBookEditor();
+    openSheet();
+  }
+
+  function renderBookEditor(){
+    const box=$("editor");
+    box.innerHTML="";
+
+    const wrap=document.createElement("div");
+    wrap.className="setBox";
+
+    const l1=document.createElement("div");
+    l1.className="label";
+    l1.textContent="場所名";
+    wrap.appendChild(l1);
+
+    const name=document.createElement("input");
+    name.className="input";
+    name.placeholder="例：〇〇カフェ / △△公園";
+    name.value = draftBook.name || "";
+    name.oninput=(e)=>{ draftBook.name = e.target.value; };
+    wrap.appendChild(name);
+
+    const l2=document.createElement("div");
+    l2.className="label";
+    l2.textContent="カテゴリ";
+    wrap.appendChild(l2);
+
+    const sel=document.createElement("select");
+    sel.className="input";
+    CATEGORIES.forEach(c=>{
+      const opt=document.createElement("option");
+      opt.value=c; opt.textContent=c;
+      if((draftBook.category||CATEGORIES[0])===c) opt.selected=true;
+      sel.appendChild(opt);
+    });
+    sel.onchange=(e)=>{ draftBook.category = e.target.value; };
+    wrap.appendChild(sel);
+
+    const l3=document.createElement("div");
+    l3.className="label";
+    l3.textContent="Googleマップ（リンク or 住所/店名）";
+    wrap.appendChild(l3);
+
+    const map=document.createElement("input");
+    map.className="input";
+    map.placeholder="例：https://maps.app.goo.gl/... または 渋谷駅";
+    map.value = draftBook.map || "";
+    map.oninput=(e)=>{ draftBook.map = e.target.value; };
+    wrap.appendChild(map);
+
+    box.appendChild(wrap);
+  }
+
+  function openSheet(){
+    $("backdrop").style.display="block";
+    $("sheet").style.display="block";
+  }
+  function closeSheet(){
+    $("backdrop").style.display="none";
+    $("sheet").style.display="none";
+    editing=null;
+    draftItems=[];
+    draftBook=null;
+  }
+
   $("addBtn").addEventListener("click", ()=>{
     draftItems.push(emptyItem());
-    renderEditor();
+    renderSlotEditor();
   });
 
-  $("backdrop").addEventListener("click", closeEditor);
-  $("closeBtn").addEventListener("click", closeEditor);
+  $("backdrop").addEventListener("click", closeSheet);
+  $("closeBtn").addEventListener("click", closeSheet);
+
+  $("deleteBtn").addEventListener("click", async ()=>{
+    try{
+      if(!editing || editing.type!=="book") return;
+      if(!ready) return;
+
+      const next = state.booklist.filter(x=>x.id!==editing.id);
+      await saveBooklist(next);
+      closeSheet();
+    }catch(e){
+      console.error(e);
+      alert("削除に失敗しました:\n"+(e?.message||e));
+    }
+  });
 
   $("saveBtn").addEventListener("click", async ()=>{
     try{
@@ -567,15 +897,42 @@ const firebaseConfig = {
         alert("初期化中です。数秒待ってから保存してください。");
         return;
       }
-      await saveSlot(editing.date, editing.slotKey, draftItems);
-      closeEditor();
+
+      if(editing.type==="slot"){
+        await saveSlot(editing.date, editing.slotKey, draftItems);
+        closeSheet();
+        return;
+      }
+
+      if(editing.type==="book"){
+        const next = [...state.booklist];
+        const cleaned = {
+          id: String(draftBook.id || id()),
+          name: String(draftBook.name||"").trim(),
+          category: CATEGORIES.includes(String(draftBook.category||"")) ? String(draftBook.category) : CATEGORIES[0],
+          map: String(draftBook.map||"").trim()
+        };
+        if(!cleaned.name && !cleaned.map){
+          alert("場所名か地図を入力してください。");
+          return;
+        }
+
+        const i = next.findIndex(x=>x.id===cleaned.id);
+        if(i>=0) next[i]=cleaned;
+        else next.unshift(cleaned);
+
+        await saveBooklist(next);
+        closeSheet();
+        return;
+      }
     }catch(e){
       console.error(e);
       alert("保存に失敗しました:\n" + (e?.message || e));
     }
   });
 
-  renderMain();
+  // boot
+  render();
 
   signInAnonymously(auth).catch((e)=>{
     console.error(e);
@@ -591,13 +948,19 @@ const firebaseConfig = {
     onSnapshot(tripRef, (snap)=>{
       const data = snap.data();
       if(!data) return;
+
       state.grid = normalizeGrid(data.grid);
-      renderMain();
+      state.booklist = normalizeBooklist(data.booklist);
+
+      render();
     }, (err)=>{
       console.error(err);
       alert("Firestore購読に失敗しました。ルールを確認してください。");
     });
   });
+
+  // 初期は予定画面
+  setView("schedule");
 </script>
 </body>
 </html>
